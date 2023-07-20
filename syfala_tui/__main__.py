@@ -141,11 +141,35 @@ class Tui:
         """
         return self._parse_makefile_env(makefile_env_path)
 
-    def run(self):
-        pretty_print(self.config_file)
-
-    def main_menu(self):
+    def _variables_menu(self, config_file: dict) -> dict:
         ...
+    
+    def _build_targets_menu(self, config_file: dict) -> dict:
+        ...
+
+    def _write_config_file(self, config_file: dict) -> None:
+        ...
+
+    def _main_menu(self):
+        answer = inquirer.prompt([
+            inquirer.List(
+                "choice",
+                message="Do you want to modify variables or build targets?",
+                choices=["Variables", "Build Targets", "Exit"],
+            ),
+        ])
+        if answer.get('choice') == 'Variables':
+            self.config_file = self._variables_menu(self.config_file)
+        elif answer.get('choice') == 'Build Targets':
+            self.config_file = self._build_targets_menu(self.config_file)
+        else:
+            print('====> Writing config file!')
+            self._write_config_file(self.config_file)
+            exit(0)
+
+    def run(self):
+        self._main_menu()
+
 
 if __name__ == "__main__":
     # Path for the syfala user configuration file
