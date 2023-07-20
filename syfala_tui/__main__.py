@@ -5,44 +5,45 @@ from .utils import _banner
 from pathlib import Path
 from typing import Optional, List
 import inquirer
+import os
 
 POSSIBLE_KEYS = {
     # XILINX RELATED OPTIONS
-    "XILINX_ROOT_DIR": None,
-    "XILINX_VERSION": None,
+    "XILINX_ROOT_DIR": os.environ['XILINX_ROOT_DIR'],
+    "XILINX_VERSION": "2022.2",
     # TARGET
-    "TARGET": None,
+    "TARGET": "faust",
     # TARGET FAUST
-    "FAUST": None,
-    "FAUST_MCD": None,
-    "FAUST_DSP_TARGET": None,
-    "FAUST_HLS_ARCH_FILE": None,
-    "FAUST_ARM_ARCH_FILE": None,
+    "FAUST": "faust",
+    "FAUST_MCD": "16",
+    "FAUST_DSP_TARGET": "examples/bypass.dsp",
+    "FAUST_HLS_ARCH_FILE": "source/rtl/hls/faust_dsp_template.cpp",
+    "FAUST_ARM_ARCH_FILE": "include/syfala/arm/faust/control.hpp",
     # TARGET CPP
-    "HLS_CPP_SOURCE": None,
-    "HOST_MAIN_SOURCE": None,
-    "INPUTS": None,
-    "OUTPUTS": None,
+    "HLS_CPP_SOURCE": "source/rtl/hls/template_fir.cpp",
+    "HOST_MAIN_SOURCE": "source/arm/baremetal/arm.cpp",
+    "INPUTS": "0",
+    "OUTPUTS": "0",
     # BOARD TARGET
-    "BOARD": None,
-    "BOARD_CONSTRAINT_FILE": None,
+    "BOARD": "Z20",
+    "BOARD_CONSTRAINT_FILE": "source/constraints/zybo.xdc", # for zybo
     # RUNTIME PARAMETERS
-    "SAMPLE_RATE": None,
-    "SAMPLE_WIDTH": None,
-    "MULTISAMPLE": None,
-    "MEMORY_TARGET": None,
-    "CONTROLLER_TYPE": None,
-    "CTRL_MIDI": None,
-    "CTRL_OSC": None,
-    "CTRL_HTTP": None,
+    "SAMPLE_RATE": "48000",
+    "SAMPLE_WIDTH": "24",
+    "MULTISAMPLE": "0",
+    "MEMORY_TARGET": "DDR",
+    "CONTROLLER_TYPE": "PCB1",
+    "CTRL_MIDI": "FALSE",
+    "CTRL_OSC": "FALSE",
+    "CTRL_HTTP": "FALSE",
     # ADVANCED BUILD OPTIONS
-    "LINUX": None,
-    "CONFIG_EXPERIMENTAL_TDM": None,
-    "CONFIG_EXPERIMENTAL_SIGMA_DELTA": None,
-    "PREPROCESSOR_HLS": None,
+    "LINUX": "FALSE",
+    "CONFIG_EXPERIMENTAL_TDM": "FALSE",
+    "CONFIG_EXPERIMENTAL_SIGMA_DELTA": "FALSE",
+    "PREPROCESSOR_HLS": "FALSE",
     "PREPROCESSOR_I2S": None,
-    "I2S_SOURCE": None,
-    "BD_TARGET": None,
+    "I2S_SOURCE": "source/rtl/i2s/i2s_template.vhd",
+    "BD_TARGET": "source/bd/standard.tcl",
     # HW/SW BUILD OPTIONS
     "all": None,
     "sw": None,
@@ -193,6 +194,7 @@ class Tui:
         ).get("menu", None)
 
         if answer == "Faust":
+            self.config_file["TARGET"] = "faust"
             faust_options = inquirer.prompt(
                 [
                     inquirer.Text(
@@ -225,7 +227,9 @@ class Tui:
             )
             self.config_file = faust_options | self.config_file
             self._main_menu()
+
         elif answer == "C++":
+            self.config_file["TARGET"] = "cpp"
             cpp_options = inquirer.prompt(
                 [
                     inquirer.Text(
