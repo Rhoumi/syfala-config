@@ -41,7 +41,7 @@ POSSIBLE_KEYS = {
     "CONFIG_EXPERIMENTAL_TDM": "FALSE",
     "CONFIG_EXPERIMENTAL_SIGMA_DELTA": "FALSE",
     "PREPROCESSOR_HLS": "FALSE",
-    "PREPROCESSOR_I2S": None,
+    "PREPROCESSOR_I2S": "FALSE",
     "I2S_SOURCE": "source/rtl/i2s/i2s_template.vhd",
     "BD_TARGET": "source/bd/standard.tcl",
     # HW/SW BUILD OPTIONS
