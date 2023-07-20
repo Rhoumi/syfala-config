@@ -7,9 +7,14 @@ from typing import Optional, List
 import inquirer
 import os
 
+try:
+    XILINX_ROOT_DIR = os.environ["XILINX_ROOT_DIR"]
+except KeyError:
+    XILINX_ROOT_DIR = None
+
 POSSIBLE_KEYS = {
     # XILINX RELATED OPTIONS
-    "XILINX_ROOT_DIR": os.environ['XILINX_ROOT_DIR'],
+    "XILINX_ROOT_DIR": XILINX_ROOT_DIR,
     "XILINX_VERSION": "2022.2",
     # TARGET
     "TARGET": "faust",
@@ -146,15 +151,12 @@ class Tui:
         """
         return self._parse_makefile_env(makefile_env_path)
 
-    def _xilinx_related_options_menu(self, config_file: dict) -> dict:
+    def _xilinx_related_options_menu(self, config_file: dict) -> None:
         """Xiling related options menu. This menu will allow the user
         to modify the Xilinx related options in the makefile.env file.
 
         Args:
             config_file (dict): The syfala config file
-
-        Returns:
-            dict: The syfala config file
         """
         answer = inquirer.prompt(
             [
@@ -171,19 +173,15 @@ class Tui:
                 ),
             ]
         )
-        self.config_file["XILINX_ROOT_DIR"] = answer.get("XILINX_ROOT_DIR")
-        self.config_file["XILINX_VERSION"] = answer.get("XILINX_VERSION")
-        return answer | self.config_file
+        self.config_file = answer | self.config_file
+        self._main_menu()
 
-    def _target_menu(self, config_file: dict) -> dict:
+    def _target_menu(self, config_file: dict) -> None:
         """The target menu will allow the user to choose between the Faust
         or C++ target. Depending on the target, a sub-menu will be displayed
 
         Args:
             config_file (dict): The Syfala config file
-
-        Returns:
-            dict: The Syfala config file
         """
         answer = inquirer.prompt(
             [
@@ -206,7 +204,7 @@ class Tui:
                         "FAUST_MCD",
                         message="Faust MCD PATH",
                         default=config_file.get("FAUST_MCD", None),
-                        validate=lambda _, x: x % 2 == 0,
+                        validate=lambda _, x: int(x) % 2 == 0,
                     ),
                     inquirer.Text(
                         "FAUST_DSP_TARGET",
@@ -259,16 +257,13 @@ class Tui:
             self.config_file = cpp_options | self.config_file
             self._main_menu()
 
-    def _board_target_menu(self, config_file: dict) -> dict:
+    def _board_target_menu(self, config_file: dict) -> None:
         """This menu will allow the user to modify the board target.
         The board target is the FPGA board that will be used for the
         build.
 
         Args:
             config_file (dict): The Syfala config file
-
-        Returns:
-            dict: The Syfala Config File
         """
         board_options = inquirer.prompt(
             [
@@ -285,16 +280,13 @@ class Tui:
         self.config_file = board_options | self.config_file
         self._main_menu()
 
-    def _runtime_parameters_menu(self, config_file: dict) -> dict:
+    def _runtime_parameters_menu(self, config_file: dict) -> None:
         """This menu will allow the user to modify the runtime parameters
         of the build. The runtime parameters are the parameters that determine
         how the FPGA will behave at runtime.
 
         Args:
             config_file (dict): The Syfala config file
-
-        Returns:
-            dict: The Syfala config file
         """
         runtime_parameters = inquirer.prompt(
             [
@@ -351,15 +343,12 @@ class Tui:
         self.config_file = runtime_parameters | self.config_file
         self._main_menu()
 
-    def _advanced_build_options_menu(self, config_file: dict) -> dict:
+    def _advanced_build_options_menu(self, config_file: dict) -> None:
         """This menu will allow the user to modify the advanced build options.
         These are additional build options.
 
         Args:
             config_file (dict): The Syfal config file
-
-        Returns:
-            dict: The Syfal config file
         """
         advanced_build_options = inquirer.prompt(
             [
@@ -408,7 +397,7 @@ class Tui:
         self.config_file = advanced_build_options | self.config_file
         self._main_menu()
 
-    def _variables_menu(self, config_file: dict) -> dict:
+    def _variables_menu(self, config_file: dict) -> None:
         """This menu will allow the user to modify the variables in the
         Syfala configuration file.
 
@@ -454,6 +443,7 @@ class Tui:
         Returns:
             dict: The syfal config file
         """
+        print('TODO TODO')
         answer = inquirer.prompt(
             [
                 inquirer.List(
@@ -477,13 +467,25 @@ class Tui:
             for key, value in config_file.items():
                 file.write(f"{key} := {value}\n")
 
-    def _main_menu(self):
+    def _clear_config_file(self) -> None:
+        """
+        This method will clear the makefile.env file and restore
+        the default values.
+        """
+        self.config_file: dict = self._create_template_makefile_env()
+        self._main_menu()
+
+    def _main_menu(self) -> None:
+        """
+        Entry point. This menu is the homepage of the configuration
+        tool. The file will be written when the user exits the tool.
+        """
         answer = inquirer.prompt(
             [
                 inquirer.List(
                     "choice",
                     message="Do you want to modify variables or build targets?",
-                    choices=["Variables", "Build Targets", "Exit"],
+                    choices=["Variables", "Build Targets", "Clear", "Exit"],
                 ),
             ]
         )
@@ -491,6 +493,8 @@ class Tui:
             self.config_file = self._variables_menu(self.config_file)
         elif answer.get("choice") == "Build Targets":
             self.config_file = self._build_targets_menu(self.config_file)
+        elif answer.get("choice") == "Clear":
+            self._clear_config_file()
         else:
             print("====> Writing config file!")
             self._write_config_file(self.config_file)
