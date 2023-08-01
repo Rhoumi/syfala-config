@@ -501,7 +501,7 @@ class Tui:
             self.config_file = self._build_targets_menu(self.config_file,self.run_commands)
         elif answer.get("choice") == "[o] Start Syfala":
             print("Syfala running "+self.run_commands)
-            os.system(self.run_commands)
+            os.system('cd /$HOME/syfala-project/; ' + self.run_commands)
             exit(0)
         else:
             print("====> config file saved!")
