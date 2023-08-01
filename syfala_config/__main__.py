@@ -49,18 +49,6 @@ POSSIBLE_KEYS = {
     "PREPROCESSOR_I2S": "FALSE",
     "I2S_SOURCE": "source/rtl/i2s/i2s_template.vhd",
     "BD_TARGET": "source/bd/standard.tcl",
-    # HW/SW BUILD OPTIONS
-    #"all": "make all",
-    #"sw": "make sw",
-    #"hw": "make hw",
-    #"bitstream": "make bitstream",
-    #"synth": "make synth",
-    #"project": "make project",
-    #"hls": "make hls",
-    #"hls-target-file": "make hls-target-file",
-    #"linux": "make linux",
-    #"linux-boot": "make linux-boot",
-    #"linux-root": "make linux-root",
 }
 
 
@@ -501,17 +489,17 @@ class Tui:
                 inquirer.List(
                     "choice",
                     message="Do you want to modify variables or build targets?",
-                    choices=["Variables","Display Config", "Build Targets", "Start Syfala","Exit"],
+                    choices=["[1] Variables","`--> Print Variables Config", "[2] Build Targets", "[o] Start Syfala","[x] Exit"],
                 ),
             ]
         )
-        if answer.get("choice") == "Variables":
+        if answer.get("choice") == "[1] Variables":
             self.config_file = self._variables_menu(self.config_file)
-        elif answer.get("choice") == "Display Config":
+        elif answer.get("choice") == "`--> Print Variables Config":
             self._display_config_file(self.config_file)
-        elif answer.get("choice") == "Build Targets":
+        elif answer.get("choice") == "[2] Build Targets":
             self.config_file = self._build_targets_menu(self.config_file,self.run_commands)
-        elif answer.get("choice") == "Start Syfala":
+        elif answer.get("choice") == "[o] Start Syfala":
             print("Syfala running "+self.run_commands)
             os.system(self.run_commands)
             exit(0)
