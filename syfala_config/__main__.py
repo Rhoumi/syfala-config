@@ -148,7 +148,7 @@ class Tui:
 
         """
         for key, value in config_file.items():
-            print(f"[X] {key} : {value}")
+            print(f"[#] {key} : {value}")
         print("\n")
         self._main_menu()
 
