@@ -49,18 +49,6 @@ POSSIBLE_KEYS = {
     "PREPROCESSOR_I2S": "FALSE",
     "I2S_SOURCE": "source/rtl/i2s/i2s_template.vhd",
     "BD_TARGET": "source/bd/standard.tcl",
-    # HW/SW BUILD OPTIONS
-    "all": None,
-    "sw": None,
-    "hw": None,
-    "bitstream": None,
-    "synth": None,
-    "project": None,
-    "hls": None,
-    "hls-target-file": None,
-    "linux": None,
-    "linux-boot": None,
-    "linux-root": None,
 }
 
 
@@ -72,7 +60,7 @@ class Tui:
         print(_banner)
         self.config_path = config
         self.config_file: Optional[dict] = None
-        self.run_commands: List[str] = []
+        self.run_commands: str = "make all"
         try:
             self.config_file: dict = self._read_config_file(self.config_path)
         except FileNotFoundError or Exception as e:
@@ -151,6 +139,20 @@ class Tui:
         """
         return self._parse_makefile_env(makefile_env_path)
 
+    def _display_config_file(self,  config_file: dict) -> None:
+        """Entry point for displaying the makefile.env file. This function
+        will try to parse the makefile.env file and return a dictionary
+
+        Args:
+            makefile_env_path (_type_): Path to the makefile.env file
+
+        """
+        for key, value in config_file.items():
+            print(f"[X] {key} : {value}")
+        print("\n")
+        self._main_menu()
+
+    
     def _xilinx_related_options_menu(self, config_file: dict) -> None:
         """Xiling related options menu. This menu will allow the user
         to modify the Xilinx related options in the makefile.env file.
@@ -173,8 +175,8 @@ class Tui:
                 ),
             ]
         )
-        self.config_file = answer | self.config_file
-        self._main_menu()
+        self.config_file = self.config_file | answer
+        self._variables_menu(self.config_file)
 
     def _target_menu(self, config_file: dict) -> None:
         """The target menu will allow the user to choose between the Faust
@@ -223,8 +225,8 @@ class Tui:
                     ),
                 ]
             )
-            self.config_file = faust_options | self.config_file
-            self._main_menu()
+            self.config_file = self.config_file | faust_options
+            self._variables_menu(self.config_file)
 
         elif answer == "C++":
             self.config_file["TARGET"] = "cpp"
@@ -254,8 +256,8 @@ class Tui:
                     ),
                 ]
             )
-            self.config_file = cpp_options | self.config_file
-            self._main_menu()
+            self.config_file = self.config_file | cpp_options
+            self._variables_menu(self.config_file)
 
     def _board_target_menu(self, config_file: dict) -> None:
         """This menu will allow the user to modify the board target.
@@ -277,8 +279,8 @@ class Tui:
                 ),
             ]
         )
-        self.config_file = board_options | self.config_file
-        self._main_menu()
+        self.config_file = self.config_file | board_options
+        self._variables_menu(self.config_file)
 
     def _runtime_parameters_menu(self, config_file: dict) -> None:
         """This menu will allow the user to modify the runtime parameters
@@ -340,8 +342,8 @@ class Tui:
                 ),
             ]
         )
-        self.config_file = runtime_parameters | self.config_file
-        self._main_menu()
+        self.config_file = self.config_file | runtime_parameters
+        self._variables_menu(self.config_file)
 
     def _advanced_build_options_menu(self, config_file: dict) -> None:
         """This menu will allow the user to modify the advanced build options.
@@ -394,8 +396,8 @@ class Tui:
                 ),
             ]
         )
-        self.config_file = advanced_build_options | self.config_file
-        self._main_menu()
+        self.config_file = self.config_file | advanced_build_options
+        self._variables_menu(self.config_file)
 
     def _variables_menu(self, config_file: dict) -> None:
         """This menu will allow the user to modify the variables in the
@@ -418,6 +420,7 @@ class Tui:
                         "Board Target",
                         "Runtime parameters",
                         "Advanced build options",
+                        "<--- Back",
                     ],
                 )
             ]
@@ -429,30 +432,39 @@ class Tui:
             "Board Target": self._board_target_menu,
             "Runtime parameters": self._runtime_parameters_menu,
             "Advanced build options": self._advanced_build_options_menu,
+            "<--- Back" : self._main_menu,
         }
-        options[answer](config_file)
+        if answer == "<--- Back":
+            options[answer]()
+        else : 
+            options[answer](config_file)
 
-    def _build_targets_menu(self, config_file: dict) -> dict:
+    def _build_targets_menu(self, config_file: dict, run_commands: str) -> None:
         """The build targets menu is used to select the build targets.
         It will constitute a list of actions that will be executed when
         the configuration tool exits.
 
         Args:
             config_file (dict): The syfala config file
+            run_commands (str): The actual selected command
 
         Returns:
-            dict: The syfal config file
+            dict: The syfala config file
         """
-        print('TODO TODO')
         answer = inquirer.prompt(
             [
                 inquirer.List(
                     "build",
                     message="What targets?",
-                    choices=["hw", "sw", ""],
+                    choices=["all","hw", "sw", "bitstream", "synth", "project", "hls", "hls-target-file", "linux", "linux-boot", "linux-root"],
                 ),
             ]
-        )
+        ).get("build", None)
+        self.run_commands = "make "+str(answer)
+        print(self.run_commands)
+        self._main_menu()
+
+
 
     def _write_config_file(self, config_file: dict) -> None:
         """Overwrite the makefile.env file with the new configuration.
@@ -467,14 +479,6 @@ class Tui:
             for key, value in config_file.items():
                 file.write(f"{key} := {value}\n")
 
-    def _clear_config_file(self) -> None:
-        """
-        This method will clear the makefile.env file and restore
-        the default values.
-        """
-        self.config_file: dict = self._create_template_makefile_env()
-        self._main_menu()
-
     def _main_menu(self) -> None:
         """
         Entry point. This menu is the homepage of the configuration
@@ -485,18 +489,22 @@ class Tui:
                 inquirer.List(
                     "choice",
                     message="Do you want to modify variables or build targets?",
-                    choices=["Variables", "Build Targets", "Clear", "Exit"],
+                    choices=["Variables","Display Config", "Build Targets", "Start Syfala","Exit"],
                 ),
             ]
         )
         if answer.get("choice") == "Variables":
             self.config_file = self._variables_menu(self.config_file)
+        elif answer.get("choice") == "Display Config":
+            self._display_config_file(self.config_file)
         elif answer.get("choice") == "Build Targets":
-            self.config_file = self._build_targets_menu(self.config_file)
-        elif answer.get("choice") == "Clear":
-            self._clear_config_file()
+            self.config_file = self._build_targets_menu(self.config_file,self.run_commands)
+        elif answer.get("choice") == "Start Syfala":
+            print("Syfala running "+self.run_commands)
+            os.system(self.run_commands)
+            exit(0)
         else:
-            print("====> Writing config file!")
+            print("====> config file saved!")
             self._write_config_file(self.config_file)
             exit(0)
 
