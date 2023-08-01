@@ -489,13 +489,13 @@ class Tui:
                 inquirer.List(
                     "choice",
                     message="Do you want to modify variables or build targets?",
-                    choices=["[°] Variables"," `--> Print Variables Config", "[.] Build Targets", "[o] Start Syfala","[x] Exit"],
+                    choices=["[°] Variables","  `--> Print Variables Config", "[.] Build Targets", "[o] Start Syfala","[x] Exit"],
                 ),
             ]
         )
         if answer.get("choice") == "[°] Variables":
             self.config_file = self._variables_menu(self.config_file)
-        elif answer.get("choice") == " `--> Print Variables Config":
+        elif answer.get("choice") == "  `--> Print Variables Config":
             self._display_config_file(self.config_file)
         elif answer.get("choice") == "[.] Build Targets":
             self.config_file = self._build_targets_menu(self.config_file,self.run_commands)
