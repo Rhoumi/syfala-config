@@ -19,7 +19,6 @@ POSSIBLE_KEYS = {
     # TARGET
     "TARGET": "faust",
     # TARGET FAUST
-    "FAUST": "faust",
     "FAUST_MCD": "16",
     "FAUST_DSP_TARGET": "examples/bypass.dsp",
     "FAUST_HLS_ARCH_FILE": "source/rtl/hls/faust_dsp_template.cpp",
